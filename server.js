@@ -1,6 +1,7 @@
 require('dotenv').config()
 const express = require('express')
 const cors = require('cors')
+const Score = require('./models/Score')
 const mongoose = require('mongoose')
 
 const questions = require('./data/questions')
@@ -11,10 +12,6 @@ const PORT = 3000
 // Middleware
 app.use(cors())
 app.use(express.json())
-
-// In-memory scores store (replaced by MongoDB in Week 10)
-let scores = []
-
 
 // Test route
 app.get('/', (req, res) => {
@@ -38,38 +35,39 @@ app.get('/api/questions/random', (req, res) => {
     res.json(shuffled.slice(0, 10))
 })
 
-// POST /api/scores — submit a new score
-app.post('/api/scores', (req, res) => {
+app.post('/api/scores', async (req, res) => {
     const { playerName, score, totalQuestions } = req.body
 
     if (!playerName || score === undefined || !totalQuestions) {
         return res.status(400).json({ error: 'playerName, score, and totalQuestions are required' })
     }
 
-    const newScore = {
-        id: Date.now(),
-        playerName,
-        score,
-        totalQuestions,
-        date: new Date().toISOString()
+    try {
+        const newScore = await Score.create({
+            playerName,
+            score,
+            totalQuestions
+            // date is set automatically by the schema default
+        })
+        console.log('Score saved:', newScore)
+        res.status(201).json(newScore)
+    } catch (error) {
+        console.error('Error saving score:', error.message)
+        res.status(500).json({ error: 'Failed to save score' })
     }
-
-    scores.push(newScore)
-    console.log('Score received:', newScore)
-
-    res.status(201).json(newScore)
 })
 
-// GET /api/scores — return all scores, highest first
-app.get('/api/scores', (req, res) => {
-    const sorted = [...scores].sort((a, b) => b.score - a.score)
-    res.json(sorted)
+app.get('/api/scores', async (req, res) => {
+    try {
+        const scores = await Score.find()
+        .sort({ score: -1 })
+        .limit(10)
+        res.json(scores)
+    } catch (error) {
+        console.error('Error fetching scores:', error.message)
+        res.status(500).json({ error: 'Failed to fetch scores' })
+    }
 })
-
-// // Start the server
-// app.listen(PORT, () => {
-//     console.log(`Server running at http://localhost:${PORT}`)
-// })
 
 // Connect to MongoDB, then start the server
 mongoose.connect(process.env.MONGODB_URI)
