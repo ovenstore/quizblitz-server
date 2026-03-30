@@ -22,4 +22,5 @@ const scoreSchema = new mongoose.Schema({
     }
 })
 
-module.exports = mongoose.model('Score', scoreSchema)
+
+module.exports = mongoose.model('Score', scoreSchema) 
