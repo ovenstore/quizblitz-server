@@ -1,14 +1,15 @@
 require('dotenv').config()
+
 const express = require('express')
 const cors = require('cors')
+const verifyToken = require('./middleware/verifyToken')
+
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
-
 const Score = require('./models/Score')
 const User = require('./models/User')
 
 const mongoose = require('mongoose')
-
 const questions = require('./data/questions')
 
 const app = express()
