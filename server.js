@@ -2,6 +2,8 @@ require('dotenv').config()
 const express = require('express')
 const cors = require('cors')
 const Score = require('./models/Score')
+const User = require('./models/User')
+
 const mongoose = require('mongoose')
 
 const questions = require('./data/questions')
